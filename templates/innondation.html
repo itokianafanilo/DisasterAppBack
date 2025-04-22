@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prédiction des Inondations</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #0073e6;
+        }
+        .container {
+            margin-top: 20px;
+        }
+        .probability {
+            font-size: 18px;
+            margin: 10px 0;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Prédiction des Inondations pour 7 Jours</h1>
+    <div class="container">
+        <label for="city">Ville :</label>
+        <input type="text" id="city" value="Antananarivo">
+        <button onclick="getPredictions()">Afficher les probabilités</button>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function getPredictions() {
+            const city = document.getElementById("city").value;
+            fetch(`/predict?city=${encodeURIComponent(city)}`)
+                .then(response => response.json())
+                .then(data => {
+                    const resultDiv = document.getElementById('result');
+                    resultDiv.innerHTML = '';  // Réinitialiser
+
+                    if (!data.flood_risks) {
+                        resultDiv.innerHTML = `<p>Erreur dans la réponse du serveur.</p>`;
+                        return;
+                    }
+
+                    const title = document.createElement('h2');
+                    title.innerText = `Ville : ${data.city}`;
+                    resultDiv.appendChild(title);
+
+                    data.flood_risks.forEach((risk, index) => {
+                        const p = document.createElement('p');
+                        p.className = 'probability';
+                        p.innerText = `Jour ${index + 1} : ${(risk * 100).toFixed(2)}% de risque d'inondation`;
+                        resultDiv.appendChild(p);
+                    });
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    document.getElementById('result').innerHTML = `<p>Une erreur est survenue.</p>`;
+                });
+        }
+    </script>
+</body>
+</html>

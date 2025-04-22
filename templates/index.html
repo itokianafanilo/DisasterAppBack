@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prédiction des Catastrophes</title>
+    <script>
+        function getLocationAndPredict() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(sendPosition);
+            } else {
+                alert("La géolocalisation n'est pas supportée par ce navigateur.");
+            }
+        }
+
+        function sendPosition(position) {
+            let lat = position.coords.latitude;
+            let lon = position.coords.longitude;
+            
+            // Convertir la position en ville avec une API de géocodage (ou WeatherAPI)
+            fetch(`https://api.weatherapi.com/v1/current.json?key=b9170461dc884ee0a72160526252603&q=${lat},${lon}`)
+            .then(response => response.json())
+            .then(data => {
+                let city = data.location.name;
+                document.getElementById("city").innerText = "Ville : " + city;
+                
+                // Appeler notre API Flask pour la prédiction
+                fetch(`/predict?city=${city}`)
+                .then(response => response.json())
+                .then(predictions => {
+                    document.getElementById("flood").innerText = "Inondation : " + (predictions.flood_risk * 100).toFixed(2) + "%";
+                    document.getElementById("drought").innerText = "Sécheresse : " + (predictions.drought_risk * 100).toFixed(2) + "%";
+                    document.getElementById("fire").innerText = "Feu : " + (predictions.fire_risk * 100).toFixed(2) + "%";
+                });
+            })
+            .catch(error => console.error("Erreur API météo :", error));
+        }
+    </script>
+</head>
+<body onload="getLocationAndPredict()">
+    <h1>Prédiction des Catastrophes Naturelles</h1>
+    <p id="city">Détection de la ville...</p>
+    <p id="flood">Inondation : </p>
+    <p id="drought">Sécheresse : </p>
+    <p id="fire">Feu : </p>
+</body>
+</html>
